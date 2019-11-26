@@ -1,0 +1,1 @@
+# A simple graph and node class
