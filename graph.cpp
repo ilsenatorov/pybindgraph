@@ -6,9 +6,11 @@
 
 using namespace std;
 
-struct Node {
+class Node {
+    private:
     string id;
     set<string> neighbours;
+    public:
     Node(){};
     ~Node(){};
     Node(const string &id) : id(id) {}
@@ -20,7 +22,19 @@ struct Node {
         neighbours.erase(node);
     }
 
-    string get_neighbours() const {
+    bool has_edge_to(const string &node) const {
+        return neighbours.count(node);
+    }
+
+    bool has_neighbours() const {
+        return !(neighbours.empty());
+    }
+
+    set<string> get_neighbours() const {
+        return neighbours;
+    }
+
+    string print_neighbours() const {
         if (neighbours.empty()) {
             return "[]";
         }
@@ -39,21 +53,25 @@ struct Node {
 };
 
 
-struct Graph {
+class Graph {
+    private:
     map<string, Node> nodes;
+    public:
     Graph() {};
     ~Graph(){};
+
     void add_node(const string &node) {
         nodes[node] = Node(node);
     }
+
     void add_edge(const string &node1, const string &node2) {
         nodes[node1].add_edge(node2);
         nodes[node2].add_edge(node1);
     }
 
     void remove_node(const string &node) {
-        if (!nodes[node].neighbours.empty()) {
-            for (auto i : nodes[node].neighbours) {
+        if (nodes[node].has_neighbours()) {
+            for (auto i : nodes[node].get_neighbours()) {
                 nodes[i].remove_edge(node);
             }
         }
@@ -65,18 +83,24 @@ struct Graph {
         nodes[node2].remove_edge(node1);
     }
 
+    bool has_edge(const string &node1, const string &node2) {
+        return nodes[node1].has_edge_to(node2);
+    }
+
+    int size() const {
+        return nodes.size();
+    }
+
     string __str__ () const {
         string res;
         string middle(" : ");
         string newline("\n");
-
         for (auto i : nodes) {
-            res += i.first + middle + i.second.get_neighbours() + newline;
+            res += i.first + middle + i.second.print_neighbours() + newline;
         }
         res.resize(res.size()-1);
         return res;
     }
-
 };
 
 
@@ -85,6 +109,8 @@ PYBIND11_MODULE(node, m) {
     py::class_<Node>(m, "Node")
         .def(py::init<const string &>())
         .def("add_edge", &Node::add_edge)
+        .def("remove_edge", &Node::remove_edge)
+        .def("has_edge_to", &Node::has_edge_to)
         .def("degree", &Node::degree);
 }
 
@@ -92,8 +118,10 @@ PYBIND11_MODULE(graph, m) {
     py::class_<Graph>(m, "Graph")
         .def(py::init<>())
         .def("add_node", &Graph::add_node)
+        .def("add_edge", &Graph::add_edge)
         .def("remove_node", &Graph::remove_node)
         .def("remove_edge", &Graph::remove_edge)
-        .def("__str__", &Graph::__str__)
-        .def("add_edge", &Graph::add_edge);
+        .def("has_edge", &Graph::has_edge)
+        .def("size", &Graph::size)
+        .def("__str__", &Graph::__str__);
 }
