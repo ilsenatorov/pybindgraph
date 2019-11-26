@@ -10,6 +10,7 @@ struct Node {
     string id;
     set<string> neighbours;
     Node(){};
+    ~Node(){};
     Node(const string &id) : id(id) {}
     void add_edge(const string &neighbour) {
         neighbours.insert(neighbour);
@@ -41,6 +42,7 @@ struct Node {
 struct Graph {
     map<string, Node> nodes;
     Graph() {};
+    ~Graph(){};
     void add_node(const string &node) {
         nodes[node] = Node(node);
     }
@@ -50,8 +52,10 @@ struct Graph {
     }
 
     void remove_node(const string &node) {
-        for (auto i : nodes[node].neighbours) {
-            remove_edge(node, i);
+        if (!nodes[node].neighbours.empty()) {
+            for (auto i : nodes[node].neighbours) {
+                nodes[i].remove_edge(node);
+            }
         }
         nodes.erase(node);
     }
